@@ -9,6 +9,7 @@ export interface Parser<ParseFns, InfixParseFns> {
 
 export interface Node {}
 
+// @TODO: typing is too hard :(
 export interface ParseFn {
   (
     parser: Parser<Record<string, ParseFn>, Record<string, InfixParseFn>>,

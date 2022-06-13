@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.143.0/testing/asserts.ts";
-import { createTokenizer, Token, TokenFn } from "./mod.ts";
+import { createTokenizer, TokenFn } from "./mod.ts";
 
 Deno.test("tokenizer [#1]", () => {
   const input = "abc";

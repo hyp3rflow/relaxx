@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.143.0/testing/asserts.ts";
-import { createRelaxParser } from "./mod.ts";
+import { createRelaxParser } from "./parser.ts";
 
 Deno.test("parseRelaxNG [#1]", () => {
   const input = "default notAllowed";
