@@ -1,45 +1,44 @@
 import { Token, Tokenizer } from "../tokenizer/mod.ts";
 
-export interface Parser {
+export interface Parser<ParseFns, InfixParseFns> {
   tokenizer: Tokenizer;
-  parse(precedence?: number): Node | undefined;
+  getPrecedence(): number;
+  parseFns: ParseFns;
+  infixParseFns: InfixParseFns;
 }
 
 export interface Node {}
 
 export interface ParseFn {
-  (parser: Parser, token: Token): Node;
+  (
+    parser: Parser<Record<string, ParseFn>, Record<string, InfixParseFn>>,
+    token: Token,
+  ): Node;
 }
 
 export interface InfixParseFn {
   precedence: number;
-  (parser: Parser, left: Node, token: Token): Node;
+  (
+    parser: Parser<Record<string, ParseFn>, Record<string, InfixParseFn>>,
+    left: Node,
+    token: Token,
+  ): Node;
 }
 
-export function createParser(
+export function createParser<
+  ParseFns extends Record<string, ParseFn>,
+  InfixParseFns extends Record<string, InfixParseFn>,
+>(
   tokenizer: Tokenizer,
-  parseFns: Record<string, ParseFn>,
-  infixParseFns: Record<string, InfixParseFn>,
-): Parser {
-  const parser: Parser = {
+  parseFns: ParseFns,
+  infixParseFns: InfixParseFns,
+): Parser<ParseFns, InfixParseFns> {
+  const parser: Parser<ParseFns, InfixParseFns> = {
     tokenizer,
-    parse,
+    getPrecedence,
+    parseFns,
+    infixParseFns,
   };
-  function parse(precedence = 0): Node | undefined {
-    const token = tokenizer.next();
-    if (!token) return;
-    const parseFn = parseFns[token.type];
-    if (!parseFn) return;
-    let left: Node = parseFn(parser, token);
-    while (precedence < getPrecedence()) {
-      const token = tokenizer.next();
-      if (!token) return;
-      const infixParseFn = infixParseFns[token.type];
-      if (!infixParseFn) return;
-      left = infixParseFn(parser, left, token);
-    }
-    return left;
-  }
   function getPrecedence() {
     const peek = tokenizer.peek();
     if (!peek) return 0;
