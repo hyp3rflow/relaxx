@@ -13,11 +13,47 @@ export interface RelaxParser {
 export function createRelaxParser(input: string): RelaxParser {
   const tokenizer = createRelaxTokenizer(input);
   const parseFns: Record<string, ParseFn> = {
-    "keyword": (parser, token) => {
-      return { type: "keyword", text: token.text };
+    "iden": (parser, token) => {
+      return { type: "iden", keyword: token.text };
+    },
+    "element": (parser, token) => {
+      const nameClass = parser.tokenizer.next();
+      const leftParens = parser.tokenizer.next();
+      const pattern = parsePattern(1);
+      const rightParens = parser.tokenizer.next();
+      return { type: "pattern", keyword: token.text, pattern, nameClass };
+    },
+    "attribute": (parser, token) => {
+      const nameClass = parser.tokenizer.next();
+      const leftParens = parser.tokenizer.next();
+      const pattern = parsePattern(1);
+      const rightParens = parser.tokenizer.next();
+      return { type: "pattern", keyword: token.text, pattern, nameClass };
+    },
+    "list": (parser, token) => {
+      const leftParens = parser.tokenizer.next();
+      const pattern = parsePattern(1);
+      const rightParens = parser.tokenizer.next();
+      return { type: "pattern", keyword: token.text, pattern };
+    },
+    "mixed": (parser, token) => {
+      const leftParens = parser.tokenizer.next();
+      const pattern = parsePattern(1);
+      const rightParens = parser.tokenizer.next();
+      return { type: "pattern", keyword: token.text, pattern };
     },
   };
-  const infixParseFns: Record<string, InfixParseFn> = {};
+  const infixParseFns: Record<string, InfixParseFn> = {
+    "WITH": (parser, left, token) => {
+      return { type: "WITH", left, right: parsePattern(1) };
+    },
+    "AND": (parser, left, token) => {
+      return { type: "AND", left, right: parsePattern(1) };
+    },
+    "OR": (parser, left, token) => {
+      return { type: "OR", left, right: parsePattern(1) };
+    },
+  };
   const parser = createParser(tokenizer, parseFns, infixParseFns);
 
   return { parse };
@@ -25,7 +61,7 @@ export function createRelaxParser(input: string): RelaxParser {
   function parse(): Node[] {
     const result: Node[] = [];
     while (parser.tokenizer.peek()) {
-      const exp = parseExpression();
+      const exp = parsePattern();
       if (exp) result.push(exp);
     }
     return result;
@@ -39,7 +75,7 @@ export function createRelaxParser(input: string): RelaxParser {
     return;
   }
 
-  function parseExpression(precedence = 0): Node | undefined {
+  function parsePattern(precedence = 0): Node | undefined {
     const token = tokenizer.next();
     if (!token) return;
     const parseFn = parseFns[token.type];

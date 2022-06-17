@@ -18,7 +18,6 @@ export interface ParseFn {
 }
 
 export interface InfixParseFn {
-  precedence: number;
   (
     parser: Parser<Record<string, ParseFn>, Record<string, InfixParseFn>>,
     left: Node,
@@ -43,7 +42,7 @@ export function createParser<
   function getPrecedence() {
     const peek = tokenizer.peek();
     if (!peek) return 0;
-    return infixParseFns[peek.type]?.precedence ?? 0;
+    return infixParseFns[peek.type] ? 1 : 0;
   }
   return parser;
 }

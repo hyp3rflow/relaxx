@@ -27,15 +27,17 @@ export function createTokenizer(input: string, tokenFns: TokenFn[]): Tokenizer {
     accept,
     next() {
       accept(whitespacePattern);
+      const prev = tokenizer.position;
       for (const tokenFn of tokenFns) {
         const token = tokenFn(tokenizer);
         if (token) return token;
+        tokenizer.position = prev;
       }
     },
     peek() {
       accept(whitespacePattern);
+      const prev = tokenizer.position;
       for (const tokenFn of tokenFns) {
-        const prev = tokenizer.position;
         const token = tokenFn(tokenizer);
         tokenizer.position = prev;
         if (token) return token;
